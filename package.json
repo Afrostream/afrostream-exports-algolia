@@ -1,0 +1,36 @@
+{
+  "name": "afrostream-exports-algolia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "echo 'requiring node v6.9.1' && . ~/.nvm/nvm.sh && nvm use 6.9.1 && echo 'Now launching `node_modules/.bin/nodemon worker.js`' && node_modules/.bin/nodemon worker.js",
+    "test": ". ~/.nvm/nvm.sh && nvm use 6.9.1 && node_modules/.bin/mocha -b test/integration/",
+    "staging": "echo 'requiring node v6.9.1' && . ~/.nvm/nvm.sh && nvm use 6.9.1 && echo 'Now launching `node_modules/.bin/nodemon worker.js`' && node_modules/.bin/nodemon staging.js",
+    "cron-ingest": ". ~/.nvm/nvm.sh && nvm use 6.9.1 && node cron/ingest.js",
+    "lint": "./node_modules/.bin/eslint ."
+  },
+  "engines": {
+    "node": "6.9.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Afrostream/afrostream-exports-algolia.git"
+  },
+  "dependencies": {
+    "afrostream-node-amqp": "git+https://afrostream-tech:39378b0626f1b2d4c733eeb5c5be73908b3c8c53@github.com/Afrostream/afrostream-node-amqp.git#v1.0.2",
+    "afrostream-node-client-backend": "git+https://afrostream-tech:39378b0626f1b2d4c733eeb5c5be73908b3c8c53@github.com/Afrostream/afrostream-node-client-backend.git#v3.2.0",
+    "afrostream-node-config": "git+https://afrostream-tech:39378b0626f1b2d4c733eeb5c5be73908b3c8c53@github.com/Afrostream/afrostream-node-config.git#v3.1.1",
+    "algoliasearch": "^3.21.1",
+    "lodash": "^4.5.0",
+    "q": "https://registry.npmjs.org/q/-/q-1.4.1.tgz"
+  },
+  "devDependencies": {
+    "eslint": "^2.8.0",
+    "mocha": "^2.4.5",
+    "nodemon": "^1.9.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
