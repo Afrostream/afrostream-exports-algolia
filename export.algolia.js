@@ -1,6 +1,7 @@
 'use strict';
 
 const Q = require('q');
+const _ = require('lodash');
 const config = require('./config');
 const algoliasearch = require('algoliasearch');
 const client = algoliasearch(config.algolia.appId, config.algolia.apiKey);
@@ -8,22 +9,30 @@ const client = algoliasearch(config.algolia.appId, config.algolia.apiKey);
 const addObject = function (indexName, data) {
   var index = client.initIndex(process.env.NODE_ENV + '_' + indexName);
   console.log('algolia addObject ', indexName, data._id);
-  data.objectID = data._id;
 
-  return Q.ninvoke(index, 'addObject', data);
+  let indice = _.omitBy(data, _.isEmpty);
+  indice.objectID = data._id;
+
+  return Q.ninvoke(index, 'addObject', indice);
 };
 
 const saveObject = function (indexName, data) {
   var index = client.initIndex(process.env.NODE_ENV + '_' + indexName);
   console.log('algolia saveObject ', indexName, data._id);
-  data.objectID = data._id;
-  return Q.ninvoke(index, 'saveObject', data);
+
+  let indice = _.omitBy(data, _.isEmpty);
+  indice.objectID = data._id;
+
+  return Q.ninvoke(index, 'saveObject', indice);
 };
 
 const partialUpdateObject = function (indexName, objectID, data) {
   var index = client.initIndex(process.env.NODE_ENV + '_' + indexName);
   console.log('algolia partialUpdateObject ', indexName, objectID);
+
+  let indice = _.omitBy(data, _.isEmpty);
   data.objectID = objectID;
+
   return Q.ninvoke(index, 'partialUpdateObject', data);
 };
 
