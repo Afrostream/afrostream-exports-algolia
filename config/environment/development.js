@@ -1,4 +1,5 @@
 module.exports = {
+  port: 6004,
   // backend requests
   backendApiKey: 'f304bdff-884c-4951-8e54-f1f60b4fbfd2',
   backendApiSecret: 'bc53b6de-0a2e-4c8d-b2d5-75cc31ef73bc',

@@ -149,5 +149,3 @@ function onModelDeleted (modelName, modelId) {
       console.log('[MQ]: onModelDeletedFromAlgolia ', modelName, modelId, result);
     });
 }
-
-this.listenToMessages();

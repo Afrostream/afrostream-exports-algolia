@@ -13,4 +13,4 @@ global.__basedir = __dirname;
 global.rootRequire = name => require(global.__basedir + '/' + (name[0] === '/' ? name.substr(1) : name));
 
 // launching app.
-require('./mq');
+require('./app');
