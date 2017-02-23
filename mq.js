@@ -54,7 +54,7 @@ function onMessage (message) {
       } = message;
 
       if (allowedModels.indexOf(modelName) === -1) {
-        throw new Error(`Model not allowed to export ${modelName}`);
+        return console.log(`[MQ]: Model not allowed to export ${modelName}`);
       }
 
       switch (type) {
