@@ -1,10 +1,11 @@
 'use strict';
 
 // exporting an instance
+const Q = require('q');
 const config = require('./config');
 const AMQP = require('afrostream-node-amqp');
-const {exportIndex} = require('./export.algolia.js');
-const Q = require('q');
+const {addObject, saveObject, deleteObjects} = require('./export.algolia.js');
+const {getEntityFromType} = require('./export.api.js');
 
 /**
  * @param message object
@@ -44,42 +45,13 @@ function onMessage (message) {
 
       switch (type) {
         case 'model.created':
-          switch (modelName) {
-            case 'Movie':
-              return onMovieCreated(dataValues._id);
-            case 'Episode':
-              return onEpisodeCreated(dataValues._id);
-            default:
-              break;
-          }
+          return onModelCreated(modelName, dataValues._id);
           break;
         case 'model.updated':
-          switch (modelName) {
-            case 'Movie':
-              return onMovieUpdated(changed, previousDataValues, dataValues);
-            case 'Season':
-              return onSeasonUpdated(changed, previousDataValues, dataValues);
-            case 'Episode':
-              return onEpisodeUpdated(changed, previousDataValues, dataValues);
-            case 'Actor':
-              // FIXME
-              // onActorUpdated(changed, previousDataValues, dataValues);
-              break;
-            default:
-              break;
-          }
+          return onModelUpdated(modelName, changed, previousDataValues, dataValues);
           break;
-        case 'model.deleted':
-          switch (modelName) {
-            case 'Movie':
-              // FIXME: deprovisionning.
-              break;
-            case 'Episode':
-              // FIXME: deprovisionning.
-              break;
-            default:
-              break;
-          }
+        case 'model.destroyed':
+          return onModelDeleted(modelName, dataValues._id);
           break;
         default:
           break;
@@ -103,102 +75,64 @@ module.exports.listenToMessages = function () {
 };
 
 /**
- * when a movie is created, we export it
+ * when a Model is created, we export it
  *
- * @param movieId    string
+ * @param modelName    string
+ * @param model Id    string
  * @return void
  * @throw errors
  */
-function onMovieCreated (movieId) {
-  console.log('[MQ]: onMovieCreated ' + movieId);
+function onModelCreated (modelName, modelId) {
+  console.log('[MQ]: onModelCreated ' + modelName + ' id : ' + modelId);
 
-  return getESMFromMovie(movieId)
-    .then(esm => {
-      console.log(esm, movieId)
+  return getEntityFromType(modelName, modelId)
+    .then(entity => {
+      return addObject(modelName, entity)
+    }).then(result => {
+      console.log('[MQ]: onModelCreatedFromAlgolia ', modelName, modelId, result);
     });
 }
 
 /**
- * when an episode is created, we export it
- *   (triggers an error if no season linked to the episode or
- *     no movies linked to the season of the episode)
+ * when a Model is updated, we need to ingest the model again
  *
- * @param episodeId      string
- * @return void
- * @throw errors
- */
-function onEpisodeCreated (episodeId) {
-  console.log('[MQ]: onEpisodeCreated ' + episodeId);
-
-  getESMFromEpisode(episodeId)
-    .then(esm => {
-      console.log(episodeId)
-    });
-}
-
-/**
- * when a movie is updated, we need to ingest the movie XML again
- *    if the posterId has changed we also need to ingest the images
- *
- * if the movie wasn't ever ingested, we trigger a first ingest.
- *
+ * @param modelName    string
  * @param changed              array[string]   modified list fields
  * @param previousDataValues   object          { field : val }
  * @param dataValues           object          { field : val }
  * @return void
  * @throw errors
  */
-function onMovieUpdated (changed, previousDataValues, dataValues) {
-  console.log('[MQ]: onMovieUpdated ' + dataValues._id);
+function onModelUpdated (modelName, changed, previousDataValues, dataValues) {
+  console.log('[MQ]: onModelUpdated ' + ' ' + dataValues._id);
 
   return Q()
-    .then(exportALG => {
-      exportIndex(exportALG)
+    .then(() => {
+      return getEntityFromType(modelName, dataValues._id)
+    })
+    .then(entity => {
+      return saveObject(modelName, entity)
+    }).then(result => {
+      console.log('[MQ]: onModelUpdatedFromAlgolia ', modelName, dataValues._id, result);
     });
 }
 
 /**
- * when a seasonNumber is updated, we need to ingest all episodes of that season
+ * when a Model is deleted,remove it from algolia
  *
- * @param changed              array[string]   modified list fields
- * @param previousDataValues   object          { field : val }
- * @param dataValues           object          { field : val }
+ * @param modelName    string
+ * @param modelId    string
  * @return void
  * @throw errors
  */
-const {getESMFromSeason} = require('./export.esm.js');
+function onModelDeleted (modelName, modelId) {
+  console.log('[MQ]: onModelDeleted ' + ' ' + modelId);
 
-function onSeasonUpdated (changed, previousDataValues, dataValues) {
-  console.log('[MQ]: onSeasonUpdated ' + dataValues._id);
-
-  if (changed.indexOf('seasonNumber') === -1) {
-    return;
-  }
-  // searching all episode of the serie
-  return getESMFromSeason(dataValues._id)
-    .then(alreadyIngestedEpisodes => {
-      console.log(dataValues)
-    });
-}
-
-/**
- * when an episode is updated, we need to ingest the episodes of that season
- *
- * if the movie of that episode wasn't ever ingested, we trigger a first ingest.
- * if the episode wasn't ever ingested, we trigger a first ingest.
- *
- * @param changed              array[string]   modified list fields
- * @param previousDataValues   object          { field : val }
- * @param dataValues           object          { field : val }
- * @return void
- * @throw errors
- */
-function onEpisodeUpdated (changed, previousDataValues, dataValues) {
-  console.log('[MQ]: onEpisodeUpdated ' + dataValues._id);
-
-  getESMFromEpisode(dataValues._id)
-    .then(esm => {
-      console.log(dataValues)
+  return Q()
+    .then(() => {
+      return deleteObjects(modelName, modelId)
+    }).then(result => {
+      console.log('[MQ]: onModelDeletedFromAlgolia ', modelName, modelId, result);
     });
 }
 
