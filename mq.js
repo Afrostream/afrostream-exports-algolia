@@ -7,6 +7,16 @@ const AMQP = require('afrostream-node-amqp');
 const {addObject, saveObject, deleteObjects} = require('./export.algolia.js');
 const {getEntityFromType} = require('./export.api.js');
 
+
+const allowedModels = [
+  'LifePin',
+  'Category',
+  'Actor',
+  'Season',
+  'Episode',
+  'Movie',
+];
+
 /**
  * @param message object
  * @paramExample
@@ -42,6 +52,10 @@ function onMessage (message) {
           dataValues = {}
         }
       } = message;
+
+      if (allowedModels.indexOf(modelName) !== -1) {
+        throw new Error(`Model not allowed to export ${modelName}`);
+      }
 
       switch (type) {
         case 'model.created':

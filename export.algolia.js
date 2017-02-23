@@ -31,9 +31,9 @@ const partialUpdateObject = function (indexName, objectID, data) {
   console.log('algolia partialUpdateObject ', indexName, objectID);
 
   let indice = _.omitBy(data, _.isEmpty);
-  data.objectID = objectID;
+  indice.objectID = objectID;
 
-  return Q.ninvoke(index, 'partialUpdateObject', data);
+  return Q.ninvoke(index, 'partialUpdateObject', indice);
 };
 
 const deleteObjects = function (indexName, objectID) {
