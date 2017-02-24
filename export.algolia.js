@@ -6,14 +6,16 @@ const config = require('./config');
 const algoliasearch = require('algoliasearch');
 const client = algoliasearch(config.algolia.appId, config.algolia.apiKey);
 
-const filterIndice = function (data, modelId) {
+const filterIndice = function (data, modelId, all) {
+
+  const checkAll = all || true;
 
   const removeEmptyObjects = function (obj) {
     return function prune (current) {
       _.forOwn(current, function (value, key) {
         if (_.isUndefined(value) || _.isNull(value) || _.isNaN(value) ||
           (_.isString(value) && _.isEmpty(value)) ||
-          (_.isArray(value)) ||
+          (checkAll && _.isArray(value)) ||
           (_.isObject(value) && _.isEmpty(prune(value)))) {
 
           delete current[key];
@@ -38,20 +40,20 @@ const filterIndice = function (data, modelId) {
   return indice;
 };
 
-const addObject = function (indexName, data) {
+const addObject = function (indexName, data, all) {
   var index = client.initIndex(process.env.NODE_ENV + '_' + indexName);
   console.log('algolia addObject ', indexName, data._id);
 
-  const indice = filterIndice(data, data._id);
+  const indice = filterIndice(data, data._id, all);
 
   return Q.ninvoke(index, 'addObject', indice);
 };
 
-const saveObject = function (indexName, data) {
+const saveObject = function (indexName, data, all) {
   var index = client.initIndex(process.env.NODE_ENV + '_' + indexName);
   console.log('algolia saveObject ', indexName, data._id);
 
-  const indice = filterIndice(data, data._id);
+  const indice = filterIndice(data, data._id, all);
 
   return Q.ninvoke(index, 'saveObject', indice);
 };
