@@ -8,7 +8,7 @@ const client = algoliasearch(config.algolia.appId, config.algolia.apiKey);
 
 const filterIndice = function (data, modelId, all) {
 
-  const checkAll = all || true;
+  const checkAll = all || false;
 
   const removeEmptyObjects = function (obj) {
     return function prune (current) {
