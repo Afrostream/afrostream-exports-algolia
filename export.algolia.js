@@ -25,7 +25,12 @@ const filterIndice = function (data, modelId) {
 
       return current;
 
-    }(_.cloneDeep(obj));  // Do not modify the original object, create a clone instead
+    }(_.cloneDeep(obj, function (value) {
+      // specially for the sequelize instances
+      if (value && value.toJSON) {
+        return value.toJSON();
+      }
+    }));  // Do not modify the original object, create a clone instead
   };
 
 
